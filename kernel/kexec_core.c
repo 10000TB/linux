@@ -1177,11 +1177,14 @@ int kernel_kexec(void)
 		 * CPU hotplug again; so re-enable it here.
 		 */
 		cpu_hotplug_enable();
-		pr_notice("Starting new kernel\n");
+		printk("Starting new kernel\n");
 		machine_shutdown();
+        printk("...End machine_shutdown()");
 	}
 
+    printk("...Begin machine_kexec(kexec_image)");
 	machine_kexec(kexec_image);
+    printk("...End  machine_kexec()");
 
 #ifdef CONFIG_KEXEC_JUMP
 	if (kexec_image->preserve_context) {
@@ -1203,7 +1206,10 @@ int kernel_kexec(void)
 #endif
 
  Unlock:
+    printk("Start mutex_unlock(&kexec_mutex)...");
 	mutex_unlock(&kexec_mutex);
+    printk("Error:");
+    printk(error);
 	return error;
 }
 

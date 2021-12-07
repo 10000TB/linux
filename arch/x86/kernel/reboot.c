@@ -682,6 +682,7 @@ static void native_machine_emergency_restart(void)
 
 void native_machine_shutdown(void)
 {
+    printk("Starting native_machine_shutdown...");
 	/* Stop the cpus and apics */
 #ifdef CONFIG_X86_IO_APIC
 	/*
@@ -718,6 +719,7 @@ void native_machine_shutdown(void)
 #ifdef CONFIG_X86_64
 	x86_platform.iommu_shutdown();
 #endif
+    printk("Done native_machine_shutdown...");
 }
 
 static void __machine_emergency_restart(int emergency)
@@ -728,7 +730,7 @@ static void __machine_emergency_restart(int emergency)
 
 static void native_machine_restart(char *__unused)
 {
-	pr_notice("machine restart\n");
+	printk("machine restart\n");
 
 	if (!reboot_force)
 		machine_shutdown();

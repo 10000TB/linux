@@ -171,6 +171,7 @@ void machine_kexec_cleanup(struct kimage *image)
  */
 void machine_kexec(struct kimage *image)
 {
+    printk("START x86 32 machine_kexec")
 	unsigned long page_list[PAGES_NR];
 	void *control_page;
 	int save_ftrace_enabled;
@@ -183,17 +184,27 @@ void machine_kexec(struct kimage *image)
 
 #ifdef CONFIG_KEXEC_JUMP
 	if (image->preserve_context)
+        printk("...preserve_context:yes")
+        printk("...Start save_processor_state();")
 		save_processor_state();
+        printk("...End save_processor_state();")
 #endif
 
+    printk("...Start __ftrace_enabled_save();")
 	save_ftrace_enabled = __ftrace_enabled_save();
+    printk("...End __ftrace_enabled_save();")
 
 	/* Interrupts aren't acceptable while we reboot */
+    printk("...Start local_irq_disable();")
 	local_irq_disable();
+    printk("...End local_irq_disable();")
+    printk("...Start hw_breakpoint_disable();")
 	hw_breakpoint_disable();
+    printk("...End hw_breakpoint_disable();")
 
 	if (image->preserve_context) {
 #ifdef CONFIG_X86_IO_APIC
+        printk("...Start clear_IO_APIC();")
 		/*
 		 * We need to put APICs in legacy mode so that we can
 		 * get timer interrupts in second kernel. kexec/kdump
@@ -201,12 +212,20 @@ void machine_kexec(struct kimage *image)
 		 * in one form or other. kexec jump path also need one.
 		 */
 		clear_IO_APIC();
+        printk("...End clear_IO_APIC();")
+        printk("...Start restore_boot_irq_mode();")
 		restore_boot_irq_mode();
+        printk("...End restore_boot_irq_mode()")
 #endif
 	}
 
+    printk("...Start page_address(image->control_code_page)")
+    printk("......%s", image->control_code_page)
 	control_page = page_address(image->control_code_page);
+    printk("...End page_address(image->control_code_page)")
+    printk("...Start memcpy(control_page, relocate_kernel, KEXEC_CONTROL_CODE_MAX_SIZE)")
 	memcpy(control_page, relocate_kernel, KEXEC_CONTROL_CODE_MAX_SIZE);
+    printk("...End   memcpy(control_page, ...)")
 
 	relocate_kernel_ptr = control_page;
 	page_list[PA_CONTROL_PAGE] = __pa(control_page);
@@ -217,6 +236,7 @@ void machine_kexec(struct kimage *image)
 		page_list[PA_SWAP_PAGE] = (page_to_pfn(image->swap_page)
 						<< PAGE_SHIFT);
 
+    printk("...Start load_segments()")
 	/*
 	 * The segment registers are funny things, they have both a
 	 * visible and an invisible part.  Whenever the visible part is
@@ -228,6 +248,7 @@ void machine_kexec(struct kimage *image)
 	 * segments, before I zap the gdt with an invalid value.
 	 */
 	load_segments();
+    printk("...End load_segments()")
 	/*
 	 * The gdt & idt are now invalid.
 	 * If you want to load them you must set up your own idt & gdt.
